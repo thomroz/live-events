@@ -4,6 +4,7 @@ go 1.25.0
 
 require (
 	cloud.google.com/go/bigquery v1.69.0
+	github.com/kr/pretty v0.3.1
 	google.golang.org/api v0.248.0
 )
 
@@ -25,7 +26,9 @@ require (
 	github.com/googleapis/gax-go/v2 v2.15.0 // indirect
 	github.com/klauspost/compress v1.16.7 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.18 // indirect
+	github.com/rogpeppe/go-internal v1.13.1 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.61.0 // indirect
