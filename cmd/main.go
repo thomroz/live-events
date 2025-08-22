@@ -12,6 +12,8 @@ import (
 )
 
 // Event represents a live event record from the BigQuery table
+//
+//nolint:tagliatelle
 type Event struct {
 	ID            int64     `bigquery:"id" json:"id"`
 	EventName     string    `bigquery:"event_name" json:"event_name"`
@@ -55,14 +57,15 @@ func main() {
 
 	for hour := 0; hour < 24; hour++ {
 		analysisTime := baseDate.Add(time.Duration(hour) * time.Hour)
-		
+
 		// Define the upcoming hour window (next hour:00 to hour:59)
-		upcomingHourStart := time.Date(analysisTime.Year(), analysisTime.Month(), analysisTime.Day(), 
+		upcomingHourStart := time.Date(analysisTime.Year(), analysisTime.Month(), analysisTime.Day(),
 			analysisTime.Hour()+1, 0, 0, 0, time.UTC)
 		upcomingHourEnd := upcomingHourStart.Add(59*time.Minute + 59*time.Second)
 
 		// Find active events in the upcoming hour
 		var activeEvents []Event
+
 		for _, event := range events {
 			// Check if event overlaps with the upcoming hour window
 			if event.StartTimeUTC.Before(upcomingHourEnd) && event.EndTimeUTC.After(upcomingHourStart) {
@@ -74,23 +77,25 @@ func main() {
 		// Since events are already loaded in chronological order, no additional sorting needed
 
 		// Display results
-		fmt.Printf("Analysis at %s → Upcoming hour %s to %s:\n", 
-			analysisTime.Format("15:04"), 
-			upcomingHourStart.Format("15:04"), 
+		fmt.Printf("Analysis at %s → Upcoming hour %s to %s:\n",
+			analysisTime.Format("15:04"),
+			upcomingHourStart.Format("15:04"),
 			upcomingHourEnd.Format("15:04"))
 
 		if len(activeEvents) == 0 {
 			fmt.Println("  No events active in upcoming hour")
 		} else {
 			fmt.Printf("  %d event(s) active:\n", len(activeEvents))
+
 			for _, event := range activeEvents {
-				fmt.Printf("    - %s (ID: %d, %s to %s)\n", 
-					event.EventName, 
+				fmt.Printf("    - %s (ID: %d, %s to %s)\n",
+					event.EventName,
 					event.ID,
 					event.StartTimeUTC.Format("15:04"),
 					event.EndTimeUTC.Format("15:04"))
 			}
 		}
+
 		fmt.Println()
 	}
 }
@@ -124,12 +129,15 @@ func readEventsFromBigQuery(ctx context.Context, projectID string) ([]Event, err
 	}
 
 	var events []Event
+
 	for {
 		var event Event
+
 		err := it.Next(&event)
 		if err == iterator.Done {
 			break
 		}
+
 		if err != nil {
 			return nil, fmt.Errorf("failed to read row: %v", err)
 		}
@@ -163,5 +171,6 @@ func (e *Event) IsActive(checkTime time.Time) bool {
 // GetEndTime calculates the actual end time including extra time
 func (e *Event) GetEndTime() time.Time {
 	totalDuration := time.Duration(e.EventDuration+e.ExtraTime) * time.Minute
+
 	return e.StartTimeUTC.Add(totalDuration)
 }

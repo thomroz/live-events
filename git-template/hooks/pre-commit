@@ -1,0 +1,19 @@
+#!/bin/bash
+
+clear
+
+golangci-lint --config ./.golangci.yaml run ./...
+
+if [[ "$?" -ne "0" ]]; then
+	printf "\n** %s **\n\n" "golangci-lint failed"
+	exit 1
+else
+	govulncheck ./...
+	if [[ "$?" -ne "0" ]]; then
+		printf "\n** %s **\n\n" "govulncheck failed"
+		exit 1
+	else
+		printf "\n** %s **\n\n" "all checks passed"
+		exit 0
+	fi
+fi
