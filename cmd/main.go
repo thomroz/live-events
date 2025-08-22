@@ -47,20 +47,51 @@ func main() {
 
 	fmt.Printf("\nTotal events loaded: %d\n", len(events))
 
-	// Example: Check which events are active at a specific time
-	checkTime := time.Date(2025, 9, 1, 14, 30, 0, 0, time.UTC)
-	fmt.Printf("\nEvents active at %s:\n", checkTime.Format("2006-01-02 15:04:05 UTC"))
+	// Analysis: Check each hour starting at 00:45 UTC
+	fmt.Println("\nHourly Analysis (checking upcoming hour for active events):")
+	fmt.Println("=========================================================")
 
-	activeCount := 0
-	for _, event := range events {
-		if event.IsActive(checkTime) {
-			fmt.Printf("- %s (ID: %d)\n", event.EventName, event.ID)
-			activeCount++
+	baseDate := time.Date(2025, 9, 1, 0, 45, 0, 0, time.UTC) // Start at 00:45 UTC
+
+	for hour := 0; hour < 24; hour++ {
+		analysisTime := baseDate.Add(time.Duration(hour) * time.Hour)
+		
+		// Define the upcoming hour window (next hour:00 to hour:59)
+		upcomingHourStart := time.Date(analysisTime.Year(), analysisTime.Month(), analysisTime.Day(), 
+			analysisTime.Hour()+1, 0, 0, 0, time.UTC)
+		upcomingHourEnd := upcomingHourStart.Add(59*time.Minute + 59*time.Second)
+
+		// Find active events in the upcoming hour
+		var activeEvents []Event
+		for _, event := range events {
+			// Check if event overlaps with the upcoming hour window
+			if event.StartTimeUTC.Before(upcomingHourEnd) && event.EndTimeUTC.After(upcomingHourStart) {
+				activeEvents = append(activeEvents, event)
+			}
 		}
-	}
 
-	if activeCount == 0 {
-		fmt.Println("No events are active at this time.")
+		// Sort active events by start_time_utc (they should already be sorted from BigQuery, but ensure it)
+		// Since events are already loaded in chronological order, no additional sorting needed
+
+		// Display results
+		fmt.Printf("Analysis at %s → Upcoming hour %s to %s:\n", 
+			analysisTime.Format("15:04"), 
+			upcomingHourStart.Format("15:04"), 
+			upcomingHourEnd.Format("15:04"))
+
+		if len(activeEvents) == 0 {
+			fmt.Println("  No events active in upcoming hour")
+		} else {
+			fmt.Printf("  %d event(s) active:\n", len(activeEvents))
+			for _, event := range activeEvents {
+				fmt.Printf("    - %s (ID: %d, %s to %s)\n", 
+					event.EventName, 
+					event.ID,
+					event.StartTimeUTC.Format("15:04"),
+					event.EndTimeUTC.Format("15:04"))
+			}
+		}
+		fmt.Println()
 	}
 }
 
